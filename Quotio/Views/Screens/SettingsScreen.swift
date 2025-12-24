@@ -99,6 +99,9 @@ struct SettingsScreen: View {
                 Text("settings.retryHelp".localized())
             }
             
+            // Notifications
+            NotificationSettingsSection()
+            
             // Paths
             Section {
                 LabeledContent("settings.binary".localized()) {
@@ -143,6 +146,68 @@ struct PathLabel: View {
                 Image(systemName: "folder")
             }
             .buttonStyle(.borderless)
+        }
+    }
+}
+
+struct NotificationSettingsSection: View {
+    private let notificationManager = NotificationManager.shared
+    
+    var body: some View {
+        @Bindable var manager = notificationManager
+        
+        Section {
+            Toggle("settings.notifications.enabled".localized(), isOn: Binding(
+                get: { manager.notificationsEnabled },
+                set: { manager.notificationsEnabled = $0 }
+            ))
+            
+            if manager.notificationsEnabled {
+                Toggle("settings.notifications.quotaLow".localized(), isOn: Binding(
+                    get: { manager.notifyOnQuotaLow },
+                    set: { manager.notifyOnQuotaLow = $0 }
+                ))
+                
+                Toggle("settings.notifications.cooling".localized(), isOn: Binding(
+                    get: { manager.notifyOnCooling },
+                    set: { manager.notifyOnCooling = $0 }
+                ))
+                
+                Toggle("settings.notifications.proxyCrash".localized(), isOn: Binding(
+                    get: { manager.notifyOnProxyCrash },
+                    set: { manager.notifyOnProxyCrash = $0 }
+                ))
+                
+                HStack {
+                    Text("settings.notifications.threshold".localized())
+                    Spacer()
+                    Picker("", selection: Binding(
+                        get: { Int(manager.quotaAlertThreshold) },
+                        set: { manager.quotaAlertThreshold = Double($0) }
+                    )) {
+                        Text("10%").tag(10)
+                        Text("20%").tag(20)
+                        Text("30%").tag(30)
+                        Text("50%").tag(50)
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 80)
+                }
+            }
+            
+            if !manager.isAuthorized {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text("settings.notifications.notAuthorized".localized())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Label("settings.notifications".localized(), systemImage: "bell")
+        } footer: {
+            Text("settings.notifications.help".localized())
         }
     }
 }

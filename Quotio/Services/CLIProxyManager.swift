@@ -361,6 +361,7 @@ final class CLIProxyManager {
                 self?.process = nil
                 if status != 0 {
                     self?.lastError = "Process exited with code: \(status)"
+                    NotificationManager.shared.notifyProxyCrashed(exitCode: status)
                 }
             }
         }

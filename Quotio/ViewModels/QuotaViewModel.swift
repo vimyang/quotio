@@ -14,6 +14,8 @@ final class QuotaViewModel {
     private var apiClient: ManagementAPIClient?
     private let antigravityFetcher = AntigravityQuotaFetcher()
     private let openAIFetcher = OpenAIQuotaFetcher()
+    private let notificationManager = NotificationManager.shared
+    private var lastKnownAccountStatuses: [String: String] = [:]
     
     var currentPage: NavigationPage = .dashboard
     var authFiles: [AuthFile] = []
@@ -119,6 +121,8 @@ final class QuotaViewModel {
             self.usageStats = try await stats
             self.apiKeys = try await keys
             
+            checkAccountStatusChanges()
+            
             let shouldRefreshQuotas = lastQuotaRefresh == nil || 
                 Date().timeIntervalSince(lastQuotaRefresh!) >= quotaRefreshInterval
             
@@ -144,6 +148,8 @@ final class QuotaViewModel {
         async let openai: () = refreshOpenAIQuotasInternal()
         
         _ = await (antigravity, openai)
+        
+        checkQuotaNotifications()
         
         isLoadingQuotas = false
     }
@@ -357,6 +363,52 @@ final class QuotaViewModel {
             await fetchAPIKeys()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+    
+    // MARK: - Notification Helpers
+    
+    private func checkAccountStatusChanges() {
+        for file in authFiles {
+            let accountKey = "\(file.provider)_\(file.email ?? file.name)"
+            let previousStatus = lastKnownAccountStatuses[accountKey]
+            
+            if file.status == "cooling" && previousStatus != "cooling" {
+                notificationManager.notifyAccountCooling(
+                    provider: file.providerType?.displayName ?? file.provider,
+                    account: file.email ?? file.name
+                )
+            } else if file.status == "ready" && previousStatus == "cooling" {
+                notificationManager.clearCoolingNotification(
+                    provider: file.provider,
+                    account: file.email ?? file.name
+                )
+            }
+            
+            lastKnownAccountStatuses[accountKey] = file.status
+        }
+    }
+    
+    func checkQuotaNotifications() {
+        for (provider, accountQuotas) in providerQuotas {
+            for (account, quotaData) in accountQuotas {
+                guard !quotaData.models.isEmpty else { continue }
+                
+                let minRemainingPercent = Double(quotaData.models.map(\.percentage).min() ?? 100)
+                
+                if minRemainingPercent <= notificationManager.quotaAlertThreshold {
+                    notificationManager.notifyQuotaLow(
+                        provider: provider.displayName,
+                        account: account,
+                        remainingPercent: minRemainingPercent
+                    )
+                } else {
+                    notificationManager.clearQuotaNotification(
+                        provider: provider.rawValue,
+                        account: account
+                    )
+                }
+            }
         }
     }
 }

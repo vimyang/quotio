@@ -220,6 +220,25 @@ struct LocalizedStrings {
         "menubar.openApp": [.english: "Open Quotio", .vietnamese: "Mở Quotio"],
         "menubar.quit": [.english: "Quit Quotio", .vietnamese: "Thoát Quotio"],
         "menubar.quota": [.english: "Quota Usage", .vietnamese: "Sử dụng hạn mức"],
+        
+        // Notifications
+        "settings.notifications": [.english: "Notifications", .vietnamese: "Thông báo"],
+        "settings.notifications.enabled": [.english: "Enable Notifications", .vietnamese: "Bật thông báo"],
+        "settings.notifications.quotaLow": [.english: "Quota Low Warning", .vietnamese: "Cảnh báo hạn mức thấp"],
+        "settings.notifications.cooling": [.english: "Account Cooling Alert", .vietnamese: "Cảnh báo tài khoản đang nghỉ"],
+        "settings.notifications.proxyCrash": [.english: "Proxy Crash Alert", .vietnamese: "Cảnh báo proxy bị lỗi"],
+        "settings.notifications.threshold": [.english: "Alert Threshold", .vietnamese: "Ngưỡng cảnh báo"],
+        "settings.notifications.help": [.english: "Get notified when quota is low, accounts enter cooling, or proxy crashes", .vietnamese: "Nhận thông báo khi hạn mức thấp, tài khoản đang nghỉ, hoặc proxy bị lỗi"],
+        "settings.notifications.notAuthorized": [.english: "Notifications not authorized. Enable in System Settings.", .vietnamese: "Thông báo chưa được cấp quyền. Bật trong Cài đặt hệ thống."],
+        
+        "notification.quotaLow.title": [.english: "⚠️ Quota Low", .vietnamese: "⚠️ Hạn mức thấp"],
+        "notification.quotaLow.body": [.english: "%@ (%@): Only %d%% quota remaining", .vietnamese: "%@ (%@): Chỉ còn %d%% hạn mức"],
+        "notification.cooling.title": [.english: "❄️ Account Cooling", .vietnamese: "❄️ Tài khoản đang nghỉ"],
+        "notification.cooling.body": [.english: "%@ (%@) has entered cooling status", .vietnamese: "%@ (%@) đã vào trạng thái nghỉ"],
+        "notification.proxyCrash.title": [.english: "🚨 Proxy Crashed", .vietnamese: "🚨 Proxy bị lỗi"],
+        "notification.proxyCrash.body": [.english: "Proxy process exited with code %d", .vietnamese: "Tiến trình proxy đã thoát với mã %d"],
+        "notification.proxyStarted.title": [.english: "✅ Proxy Started", .vietnamese: "✅ Proxy đã khởi động"],
+        "notification.proxyStarted.body": [.english: "Proxy server is now running", .vietnamese: "Máy chủ proxy đang chạy"],
     ]
     
     static func get(_ key: String, language: AppLanguage) -> String {
