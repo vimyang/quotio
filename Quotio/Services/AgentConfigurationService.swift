@@ -12,12 +12,13 @@ actor AgentConfigurationService {
         agent: CLIAgent,
         config: AgentConfiguration,
         mode: ConfigurationMode,
+        storageOption: ConfigStorageOption = .jsonOnly,
         detectionService: AgentDetectionService
     ) async throws -> AgentConfigResult {
         
         switch agent {
         case .claudeCode:
-            return generateClaudeCodeConfig(config: config, mode: mode)
+            return generateClaudeCodeConfig(config: config, mode: mode, storageOption: storageOption)
             
         case .codexCLI:
             return try await generateCodexConfig(config: config, mode: mode)
@@ -36,14 +37,14 @@ actor AgentConfigurationService {
         }
     }
     
-    private func generateClaudeCodeConfig(config: AgentConfiguration, mode: ConfigurationMode) -> AgentConfigResult {
+    private func generateClaudeCodeConfig(config: AgentConfiguration, mode: ConfigurationMode, storageOption: ConfigStorageOption) -> AgentConfigResult {
         let home = fileManager.homeDirectoryForCurrentUser.path
         let configDir = "\(home)/.claude"
         let configPath = "\(configDir)/settings.json"
         
         let opusModel = config.modelSlots[.opus] ?? "gemini-claude-opus-4-5-thinking"
         let sonnetModel = config.modelSlots[.sonnet] ?? "gemini-claude-sonnet-4-5"
-        let haikuModel = config.modelSlots[.haiku] ?? "gemini-2.5-flash-lite"
+        let haikuModel = config.modelSlots[.haiku] ?? "gemini-3-flash-preview"
         let baseURL = config.proxyURL.replacingOccurrences(of: "/v1", with: "")
         
         let envConfig: [String: String] = [
@@ -54,7 +55,10 @@ actor AgentConfigurationService {
             "ANTHROPIC_DEFAULT_HAIKU_MODEL": haikuModel
         ]
         
-        let settingsJSON: [String: Any] = ["env": envConfig]
+        let settingsJSON: [String: Any] = [
+            "env": envConfig,
+            "model": opusModel
+        ]
         
         let shellExports = """
         # CLIProxyAPI Configuration for Claude Code
@@ -87,23 +91,37 @@ actor AgentConfigurationService {
             ]
             
             if mode == .automatic {
-                try fileManager.createDirectory(atPath: configDir, withIntermediateDirectories: true)
-                
                 var backupPath: String? = nil
-                if fileManager.fileExists(atPath: configPath) {
-                    backupPath = "\(configPath).backup.\(Int(Date().timeIntervalSince1970))"
-                    try? fileManager.copyItem(atPath: configPath, toPath: backupPath!)
+                let shouldWriteJson = storageOption == .jsonOnly || storageOption == .both
+                
+                if shouldWriteJson {
+                    try fileManager.createDirectory(atPath: configDir, withIntermediateDirectories: true)
+                    
+                    if fileManager.fileExists(atPath: configPath) {
+                        backupPath = "\(configPath).backup.\(Int(Date().timeIntervalSince1970))"
+                        try? fileManager.copyItem(atPath: configPath, toPath: backupPath!)
+                    }
+                    
+                    try jsonData.write(to: URL(fileURLWithPath: configPath))
                 }
                 
-                try jsonData.write(to: URL(fileURLWithPath: configPath))
+                let instructions: String
+                switch storageOption {
+                case .jsonOnly:
+                    instructions = "Configuration saved to ~/.claude/settings.json"
+                case .shellOnly:
+                    instructions = "Shell exports ready. Add to your shell profile to complete setup."
+                case .both:
+                    instructions = "Configuration saved to ~/.claude/settings.json and shell profile updated."
+                }
                 
                 return .success(
                     type: .both,
                     mode: mode,
-                    configPath: configPath,
-                    shellConfig: shellExports,
+                    configPath: shouldWriteJson ? configPath : nil,
+                    shellConfig: (storageOption == .shellOnly || storageOption == .both) ? shellExports : nil,
                     rawConfigs: rawConfigs,
-                    instructions: "Configuration saved to ~/.claude/settings.json. Alternatively, add the shell exports to your ~/.zshrc",
+                    instructions: instructions,
                     modelsConfigured: 3,
                     backupPath: backupPath
                 )

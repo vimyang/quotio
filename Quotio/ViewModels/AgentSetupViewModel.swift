@@ -26,6 +26,7 @@ final class AgentSetupViewModel {
     var currentConfiguration: AgentConfiguration?
     var detectedShell: ShellType = .zsh
     var configurationMode: ConfigurationMode = .automatic
+    var configStorageOption: ConfigStorageOption = .jsonOnly
     var selectedRawConfigIndex: Int = 0
     
     weak var proxyManager: CLIProxyManager?
@@ -53,6 +54,7 @@ final class AgentSetupViewModel {
         testResult = nil
         selectedRawConfigIndex = 0
         configurationMode = .automatic
+        configStorageOption = .jsonOnly
         isConfiguring = false
         isTesting = false
         
@@ -85,11 +87,16 @@ final class AgentSetupViewModel {
                 agent: agent,
                 config: config,
                 mode: configurationMode,
+                storageOption: agent == .claudeCode ? configStorageOption : .jsonOnly,
                 detectionService: detectionService
             )
             
             if configurationMode == .automatic && result.success {
-                if let shellConfig = result.shellConfig, agent.configType != .file {
+                let shouldUpdateShell = agent.configType == .both
+                    ? (configStorageOption == .shellOnly || configStorageOption == .both)
+                    : agent.configType != .file
+                
+                if let shellConfig = result.shellConfig, shouldUpdateShell {
                     try await shellManager.addToProfile(
                         shell: detectedShell,
                         configuration: shellConfig,
@@ -218,6 +225,7 @@ final class AgentSetupViewModel {
         testResult = nil
         selectedRawConfigIndex = 0
         configurationMode = .automatic
+        configStorageOption = .jsonOnly
         isConfiguring = false
         isTesting = false
     }

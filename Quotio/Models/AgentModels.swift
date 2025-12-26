@@ -145,6 +145,22 @@ enum ConfigurationMode: String, CaseIterable, Identifiable, Codable, Sendable {
     }
 }
 
+enum ConfigStorageOption: String, CaseIterable, Identifiable, Codable, Sendable {
+    case jsonOnly = "json"
+    case shellOnly = "shell"
+    case both = "both"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .jsonOnly: return "doc.text"
+        case .shellOnly: return "terminal"
+        case .both: return "square.stack"
+        }
+    }
+}
+
 // MARK: - Model Slots
 
 enum ModelSlot: String, CaseIterable, Identifiable, Codable, Sendable {
@@ -184,7 +200,7 @@ struct AvailableModel: Identifiable, Codable, Hashable, Sendable {
     static let defaultModels: [ModelSlot: AvailableModel] = [
         .opus: AvailableModel(id: "opus", name: "gemini-claude-opus-4-5-thinking", provider: "openai", isDefault: true),
         .sonnet: AvailableModel(id: "sonnet", name: "gemini-claude-sonnet-4-5", provider: "openai", isDefault: true),
-        .haiku: AvailableModel(id: "haiku", name: "gemini-2.5-flash-lite", provider: "openai", isDefault: true)
+        .haiku: AvailableModel(id: "haiku", name: "gemini-3-flash-preview", provider: "openai", isDefault: true)
     ]
 
     static let allModels: [AvailableModel] = [

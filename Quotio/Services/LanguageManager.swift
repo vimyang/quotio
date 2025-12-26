@@ -334,6 +334,12 @@ struct LocalizedStrings {
         "action.cancel": [.english: "Cancel", .vietnamese: "Hủy"],
         "agents.saveConfig": [.english: "Save Config", .vietnamese: "Lưu cấu hình"],
         
+        // Storage Options
+        "agents.storageOption": [.english: "Storage Location", .vietnamese: "Vị trí lưu trữ"],
+        "agents.storage.jsonOnly": [.english: "JSON Config", .vietnamese: "JSON Config"],
+        "agents.storage.shellOnly": [.english: "Shell Profile", .vietnamese: "Shell Profile"],
+        "agents.storage.both": [.english: "Both", .vietnamese: "Cả hai"],
+        
         // Updates
         "settings.updates": [.english: "Updates", .vietnamese: "Cập nhật"],
         "settings.autoCheckUpdates": [.english: "Automatically check for updates", .vietnamese: "Tự động kiểm tra cập nhật"],
